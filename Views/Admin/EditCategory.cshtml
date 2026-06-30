@@ -1,0 +1,42 @@
+@model ApnaKrishi.Models.Category
+@{
+    ViewData["Title"] = "Edit Category";
+    Layout = "_AdminLayout";
+}
+
+<div class="card border-0 shadow-sm" style="max-width:600px">
+    <div class="card-header bg-primary text-white fw-bold">
+        <i class="fas fa-edit me-2"></i>Edit Category
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="EditCategory" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="CategoryId" />
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Category Name *</label>
+                <input asp-for="CategoryName" class="form-control" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <div class="mb-2">
+                    <small class="text-muted">Current Image:</small>
+                    <img src="@Model.ImageUrl" height="60" class="d-block mt-1 rounded" />
+                </div>
+            }
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Change Image</label>
+                <input type="file" name="imageFile" class="form-control" accept="image/*" />
+            </div>
+            <div class="form-check mb-3">
+                <input asp-for="IsActive" class="form-check-input" />
+                <label asp-for="IsActive" class="form-check-label">Active</label>
+            </div>
+            <button type="submit" class="btn btn-primary me-2">Update Category</button>
+            <a asp-action="Categories" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div>
+</div>

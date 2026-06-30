@@ -1,0 +1,166 @@
+/* ── Apna Krishi – Site Styles ── */
+
+:root {
+    --green-dark: #1b5e20;
+    --green: #2e7d32;
+    --green-light: #66bb6a;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    background: #fafafa;
+}
+
+/* ── Navbar ── */
+.navbar-brand span:last-child {
+    letter-spacing: -0.5px;
+}
+
+/* ── Section Title ── */
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1b5e20;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    display: block;
+    height: 3px;
+    width: 60px;
+    background: var(--green-light);
+    border-radius: 2px;
+    margin-top: 4px;
+}
+
+/* ── Product Card ── */
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+}
+
+.product-img {
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-img {
+    transform: scale(1.05);
+}
+
+/* ── Category Card ── */
+.category-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-radius: 12px !important;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(46,125,50,0.2) !important;
+    border-color: var(--green) !important;
+}
+
+/* ── Hero Banner ── */
+.hero-banner {
+    overflow: hidden;
+}
+
+/* ── Buttons ── */
+.btn-success {
+    background-color: var(--green);
+    border-color: var(--green);
+}
+
+.btn-success:hover {
+    background-color: var(--green-dark);
+    border-color: var(--green-dark);
+}
+
+.btn-outline-success {
+    color: var(--green);
+    border-color: var(--green);
+}
+
+.btn-outline-success:hover {
+    background-color: var(--green);
+    color: white;
+}
+
+/* ── Payment Options ── */
+.payment-option {
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 6px !important;
+}
+
+.payment-option:has(input:checked) {
+    border-color: var(--green) !important;
+    background: #e8f5e9;
+}
+
+/* ── Star Rating ── */
+.star-rating {
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+}
+
+.star-rating input:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #ffc107;
+}
+
+/* ── Cart Badge ── */
+#cartBadge {
+    min-width: 18px;
+    height: 18px;
+    font-size: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Alerts Auto-dismiss ── */
+.alert {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Order Status Timeline ── */
+.timeline-step {
+    position: relative;
+}
+
+/* ── Table Improvements ── */
+.table th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #666;
+}
+
+/* ── Sticky top spacing ── */
+.sticky-top {
+    top: 80px !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+    .hero-banner { min-height: 320px !important; }
+    .display-4 { font-size: 1.8rem; }
+    .section-title { font-size: 1.2rem; }
+}

@@ -1,0 +1,59 @@
+@model List<ApnaKrishi.Models.Category>
+@{
+    ViewData["Title"] = "Categories";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">All Categories</h5>
+    <a asp-action="AddCategory" class="btn btn-success btn-sm">
+        <i class="fas fa-plus me-1"></i>Add Category
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var cat in Model)
+                {
+                    <tr>
+                        <td>@cat.CategoryId</td>
+                        <td class="fw-semibold">@cat.CategoryName</td>
+                        <td class="text-muted small">@cat.Description</td>
+                        <td>
+                            <span class="badge @(cat.IsActive ? "bg-success" : "bg-secondary")">
+                                @(cat.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td class="small">@cat.CreatedDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a asp-action="EditCategory" asp-route-id="@cat.CategoryId"
+                               class="btn btn-outline-primary btn-sm me-1">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form asp-action="DeleteCategory" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@cat.CategoryId" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Delete this category?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

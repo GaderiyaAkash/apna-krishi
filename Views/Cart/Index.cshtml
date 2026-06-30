@@ -1,0 +1,126 @@
+@model List<ApnaKrishi.Models.Cart>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    decimal grandTotal = ViewBag.GrandTotal ?? 0;
+    decimal shipping = grandTotal >= 500 ? 0 : (grandTotal > 0 ? 60 : 0);
+}
+
+<div class="container my-4">
+    <h2 class="fw-bold mb-4"><i class="fas fa-shopping-cart text-success me-2"></i>My Cart</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <div style="font-size:6rem">🛒</div>
+            <h4 class="text-muted mt-3">Your cart is empty</h4>
+            <p class="text-muted">Looks like you haven't added anything yet.</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-success btn-lg mt-2">
+                <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            <!-- Cart Items -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        @foreach (var item in Model)
+                        {
+                            <div class="d-flex align-items-center p-3 border-bottom gap-3">
+                                <img src="@(string.IsNullOrEmpty(item.Product?.ImageUrl) ? "/images/no-image.png" : item.Product.ImageUrl)"
+                                     style="width:80px;height:80px;object-fit:contain"
+                                     class="rounded border" alt="@item.Product?.ProductName"
+                                     onerror="this.src='/images/no-image.png'" />
+
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-semibold">
+                                        <a asp-controller="Product" asp-action="Details"
+                                           asp-route-id="@item.ProductId"
+                                           class="text-dark text-decoration-none">@item.Product?.ProductName</a>
+                                    </h6>
+                                    <small class="text-muted">@item.Product?.Category?.CategoryName</small>
+                                    <div class="mt-1">
+                                        <span class="fw-bold text-success">₹@item.Product?.DiscountedPrice.ToString("F2")</span>
+                                        @if (item.Product?.DiscountPercent > 0)
+                                        {
+                                            <span class="text-muted text-decoration-line-through ms-2 small">₹@item.Product?.Price.ToString("F2")</span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="d-flex align-items-center gap-2">
+                                    <!-- Qty Controls -->
+                                    <form asp-action="UpdateQuantity" method="post" class="d-flex align-items-center gap-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="cartId" value="@item.CartId" />
+                                        <button type="submit" name="quantity" value="@(item.Quantity - 1)"
+                                                class="btn btn-outline-secondary btn-sm px-2">−</button>
+                                        <span class="px-2 fw-bold">@item.Quantity</span>
+                                        <button type="submit" name="quantity" value="@(item.Quantity + 1)"
+                                                class="btn btn-outline-secondary btn-sm px-2">+</button>
+                                    </form>
+
+                                    <div class="fw-bold text-success" style="min-width:70px;text-align:right">
+                                        ₹@item.TotalPrice.ToString("F2")
+                                    </div>
+
+                                    <form asp-action="Remove" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="cartId" value="@item.CartId" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('Remove this item?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm sticky-top" style="top:80px">
+                    <div class="card-header bg-success text-white fw-bold">
+                        <i class="fas fa-receipt me-2"></i>Order Summary
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal (@Model.Sum(c => c.Quantity) items)</span>
+                            <span>₹@grandTotal.ToString("F2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="@(shipping == 0 ? "text-success" : "")">
+                                @(shipping == 0 ? "FREE" : $"₹{shipping:F2}")
+                            </span>
+                        </div>
+                        @if (shipping > 0)
+                        {
+                            <div class="alert alert-info py-1 px-2 small mb-2">
+                                Add ₹@((500 - grandTotal).ToString("F0")) more for free shipping!
+                            </div>
+                        }
+                        <hr />
+                        <div class="d-flex justify-content-between fw-bold fs-5">
+                            <span>Grand Total</span>
+                            <span class="text-success">₹@((grandTotal + shipping).ToString("F2"))</span>
+                        </div>
+
+                        <a asp-controller="Order" asp-action="Checkout"
+                           class="btn btn-success w-100 mt-3 py-2 fw-bold">
+                            <i class="fas fa-lock me-2"></i>Proceed to Checkout
+                        </a>
+                        <a asp-controller="Product" asp-action="Index"
+                           class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,136 @@
+/* ── Apna Krishi Admin Panel Styles ── */
+
+body {
+    background: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 0.92rem;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    box-shadow: 3px 0 10px rgba(0,0,0,0.15);
+    overflow-x: hidden;
+}
+
+.sidebar-link {
+    padding: 9px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.75) !important;
+    transition: background 0.15s, color 0.15s;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.sidebar-link:hover {
+    background: rgba(255,255,255,0.08);
+    color: white !important;
+}
+
+.sidebar-link.active {
+    background: #2e7d32 !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+/* ── Cards ── */
+.card {
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    font-size: 0.9rem;
+}
+
+/* ── Tables ── */
+.table th {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+    white-space: nowrap;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.88rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(46,125,50,0.04);
+}
+
+/* ── Stat Cards ── */
+.border-start {
+    border-left-width: 4px !important;
+}
+
+/* ── Badges ── */
+.badge {
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+/* ── Buttons ── */
+.btn-success {
+    background-color: #2e7d32;
+    border-color: #2e7d32;
+}
+.btn-success:hover {
+    background-color: #1b5e20;
+    border-color: #1b5e20;
+}
+.btn-outline-success {
+    color: #2e7d32;
+    border-color: #2e7d32;
+}
+.btn-outline-success:hover {
+    background-color: #2e7d32;
+    color: white;
+}
+
+/* ── Alerts ── */
+.alert {
+    animation: fadeSlide 0.3s ease;
+    border-radius: 8px;
+}
+
+@keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Form Controls ── */
+.form-control:focus,
+.form-select:focus {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 0.2rem rgba(46,125,50,0.15);
+}
+
+/* ── Progress bars ── */
+.progress {
+    border-radius: 10px;
+    background: #e9ecef;
+}
+
+/* ── Sticky top bar ── */
+#adminContent .sticky-top {
+    top: 0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    #adminSidebar {
+        width: 0 !important;
+        overflow: hidden;
+    }
+    #adminContent {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}

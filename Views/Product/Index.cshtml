@@ -1,0 +1,133 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "Products";
+}
+
+<div class="container my-4">
+    <div class="row g-4">
+
+        <!-- Sidebar Filter -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm sticky-top" style="top:80px">
+                <div class="card-header bg-success text-white fw-bold">
+                    <i class="fas fa-filter me-2"></i>Filters
+                </div>
+                <div class="card-body">
+                    <form method="get">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Search</label>
+                            <input type="text" name="search" class="form-control" placeholder="Product name..."
+                                   value="@Model.SearchTerm" />
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Category</label>
+                            <select name="categoryId" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (var cat in Model.Categories)
+                                {
+                                    <option value="@cat.CategoryId" selected="@(Model.CategoryId == cat.CategoryId)">
+                                        @cat.CategoryName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Price Range -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Price Range (₹)</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <input type="number" name="minPrice" class="form-control form-control-sm"
+                                           placeholder="Min" value="@Model.MinPrice" min="0" />
+                                </div>
+                                <div class="col-6">
+                                    <input type="number" name="maxPrice" class="form-control form-control-sm"
+                                           placeholder="Max" value="@Model.MaxPrice" min="0" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mb-2">Apply Filters</button>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100 btn-sm">Clear All</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h5 class="mb-0">
+                        @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                        {
+                            <text>Results for "<strong>@Model.SearchTerm</strong>"</text>
+                        }
+                        else if (Model.CategoryId.HasValue)
+                        {
+                            <text>@Model.Categories.FirstOrDefault(c => c.CategoryId == Model.CategoryId)?.CategoryName</text>
+                        }
+                        else
+                        {
+                            <text>All Products</text>
+                        }
+                    </h5>
+                    <small class="text-muted">@Model.TotalCount products found</small>
+                </div>
+            </div>
+
+            @if (Model.Products.Any())
+            {
+                <div class="row g-3">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="col-6 col-md-4 col-xl-3">
+                            <partial name="_ProductCard" model="product" />
+                        </div>
+                    }
+                </div>
+
+                <!-- Pagination -->
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-page="@(Model.Page - 1)"
+                                   asp-route-search="@Model.SearchTerm"
+                                   asp-route-categoryId="@Model.CategoryId">Previous</a>
+                            </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Page ? "active" : "")">
+                                    <a class="page-link" asp-action="Index"
+                                       asp-route-page="@i"
+                                       asp-route-search="@Model.SearchTerm"
+                                       asp-route-categoryId="@Model.CategoryId">@i</a>
+                                </li>
+                            }
+                            <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                                <a class="page-link" asp-action="Index"
+                                   asp-route-page="@(Model.Page + 1)"
+                                   asp-route-search="@Model.SearchTerm"
+                                   asp-route-categoryId="@Model.CategoryId">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <div style="font-size:5rem">🌿</div>
+                    <h5 class="text-muted">No products found</h5>
+                    <a asp-action="Index" class="btn btn-success mt-2">View All Products</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

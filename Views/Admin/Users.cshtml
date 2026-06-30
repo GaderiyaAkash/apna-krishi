@@ -1,0 +1,125 @@
+@model List<ApnaKrishi.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h5 class="mb-0">User Management</h5>
+        <small class="text-muted">@ViewBag.TotalUsers total &nbsp;|&nbsp;
+            <span class="text-danger">@ViewBag.BlockedUsers blocked</span>
+        </small>
+    </div>
+    <a asp-action="Reports" asp-route-type="customer" class="btn btn-outline-success btn-sm">
+        <i class="fas fa-chart-bar me-1"></i>Customer Report
+    </a>
+</div>
+
+<!-- Search & Filter -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+            <input name="search" class="form-control form-control-sm"
+                   placeholder="Search name, email or mobile..."
+                   value="@ViewBag.Search" style="max-width:320px" />
+            <select name="filter" class="form-select form-select-sm" style="max-width:160px">
+                <option value="" selected="@(ViewBag.Filter == null)">All Users</option>
+                <option value="blocked" selected="@(ViewBag.Filter == "blocked")">Blocked Only</option>
+            </select>
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-search me-1"></i>Search
+            </button>
+            <a asp-action="Users" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Customer</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>City</th>
+                    <th>Registered</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-2 d-block"></i>No users found.
+                        </td>
+                    </tr>
+                }
+                @foreach (var user in Model)
+                {
+                    <tr class="@(user.IsBlocked ? "table-danger bg-opacity-25" : "")">
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-success bg-opacity-10 text-success fw-bold d-flex
+                                     align-items-center justify-content-center"
+                                     style="width:36px;height:36px;font-size:1rem">
+                                    @user.FullName.Substring(0, 1).ToUpper()
+                                </div>
+                                <div>
+                                    <div class="fw-semibold small">@user.FullName</div>
+                                    <small class="text-muted">ID: @user.Id.Substring(0, 8)...</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="small">@user.Email</td>
+                        <td class="small">@(user.Mobile ?? "–")</td>
+                        <td class="small text-muted">@(user.City ?? "–")</td>
+                        <td class="small text-muted">@user.CreatedDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <span class="badge @(user.IsBlocked ? "bg-danger" : "bg-success")">
+                                @(user.IsBlocked ? "Blocked" : "Active")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a asp-action="UserDetails" asp-route-id="@user.Id"
+                                   class="btn btn-outline-secondary btn-sm" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                <form asp-action="ToggleBlock" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit"
+                                            class="btn btn-sm @(user.IsBlocked ? "btn-outline-success" : "btn-outline-warning")"
+                                            title="@(user.IsBlocked ? "Unblock" : "Block")"
+                                            onclick="return confirm('@(user.IsBlocked ? "Unblock" : "Block") @user.FullName?')">
+                                        <i class="fas @(user.IsBlocked ? "fa-unlock" : "fa-ban")"></i>
+                                    </button>
+                                </form>
+
+                                <form asp-action="DeleteUser" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userId" value="@user.Id" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete"
+                                            onclick="return confirm('Permanently delete @user.FullName? This cannot be undone.')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.Any())
+    {
+        <div class="card-footer bg-white small text-muted py-2 px-3">
+            @Model.Count user(s) shown
+        </div>
+    }
+</div>

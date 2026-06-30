@@ -1,0 +1,99 @@
+@model List<ApnaKrishi.Models.Product>
+@{
+    ViewData["Title"] = "Products";
+    Layout = "_AdminLayout";
+    var categories = ViewBag.Categories as List<ApnaKrishi.Models.Category> ?? new();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="mb-0">All Products</h5>
+    <div class="d-flex gap-2">
+        <form method="get" class="d-flex gap-2">
+            <input name="search" class="form-control form-control-sm" placeholder="Search..." value="@ViewBag.Search" style="width:180px" />
+            <select name="categoryId" class="form-select form-select-sm" style="width:160px">
+                <option value="">All Categories</option>
+                @foreach (var c in categories)
+                {
+                    <option value="@c.CategoryId" selected="@(ViewBag.CategoryId?.ToString() == c.CategoryId.ToString())">
+                        @c.CategoryName
+                    </option>
+                }
+            </select>
+            <button type="submit" class="btn btn-outline-success btn-sm">Filter</button>
+        </form>
+        <a asp-action="AddProduct" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-1"></i>Add Product
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Tags</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@(p.ImageUrl ?? "/images/no-image.png")"
+                                 style="width:50px;height:50px;object-fit:contain" class="rounded" />
+                        </td>
+                        <td>
+                            <div class="fw-semibold">@p.ProductName</div>
+                            <small class="text-muted">ID: @p.ProductId</small>
+                        </td>
+                        <td><span class="badge bg-light text-dark border">@p.Category?.CategoryName</span></td>
+                        <td>
+                            <div class="fw-bold text-success">₹@p.DiscountedPrice.ToString("F0")</div>
+                            @if (p.DiscountPercent > 0)
+                            {
+                                <small class="text-muted text-decoration-line-through">₹@p.Price.ToString("F0")</small>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge @(p.Stock > 10 ? "bg-success" : p.Stock > 0 ? "bg-warning" : "bg-danger")">
+                                @p.Stock
+                            </span>
+                        </td>
+                        <td>
+                            @if (p.IsFeatured) { <span class="badge bg-info me-1">Featured</span> }
+                            @if (p.IsBestSeller) { <span class="badge bg-orange me-1" style="background:#e65100">Best Seller</span> }
+                            @if (p.IsNewArrival) { <span class="badge bg-primary me-1">New</span> }
+                        </td>
+                        <td>
+                            <span class="badge @(p.IsActive ? "bg-success" : "bg-secondary")">
+                                @(p.IsActive ? "Active" : "Inactive")
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="EditProduct" asp-route-id="@p.ProductId"
+                               class="btn btn-outline-primary btn-sm me-1">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form asp-action="DeleteProduct" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@p.ProductId" />
+                                <button type="submit" class="btn btn-outline-danger btn-sm"
+                                        onclick="return confirm('Delete this product?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,8 @@
+Place your favicon.ico and no-image.png in this folder.
+
+Suggested no-image.png: A simple grey placeholder image (400x400).
+Suggested favicon.ico: A small wheat/leaf icon.
+
+You can download free agriculture icons from:
+- https://icons8.com/icons/set/agriculture
+- https://flaticon.com (search "wheat")

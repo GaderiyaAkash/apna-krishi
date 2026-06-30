@@ -1,0 +1,264 @@
+@model ApnaKrishi.Models.Order
+@{
+    ViewData["Title"] = $"Order #{Model.OrderId}";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+        <h5 class="mb-0">Order #@Model.OrderId</h5>
+        <small class="text-muted">@Model.OrderDate.ToString("dd MMMM yyyy, hh:mm tt")</small>
+    </div>
+    <a asp-action="Orders" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>Back to Orders
+    </a>
+</div>
+
+<!-- Status Pipeline -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        @{
+            var pipeline = new[] { "Pending", "Accepted", "Dispatched", "Delivered" };
+            var currentIdx = Array.IndexOf(pipeline, Model.Status.ToString());
+            var isCancelled = Model.Status == OrderStatus.Cancelled || Model.Status == OrderStatus.Rejected;
+        }
+        @if (isCancelled)
+        {
+            <div class="alert alert-danger mb-0 py-2">
+                <i class="fas fa-times-circle me-2"></i>
+                This order was <strong>@Model.Status</strong>.
+            </div>
+        }
+        else
+        {
+            <div class="d-flex align-items-center justify-content-between">
+                @for (int i = 0; i < pipeline.Length; i++)
+                {
+                    var done = i <= currentIdx;
+                    <div class="flex-fill text-center">
+                        <div class="rounded-circle mx-auto d-flex align-items-center justify-content-center fw-bold
+                             @(done ? "bg-success text-white" : "bg-light text-muted")"
+                             style="width:40px;height:40px">
+                            @if (done) { <text><i class="fas fa-check"></i></text> }
+                            else { <text>@(i + 1)</text> }
+                        </div>
+                        <small class="@(done ? "text-success fw-bold" : "text-muted")">@pipeline[i]</small>
+                    </div>
+                    @if (i < pipeline.Length - 1)
+                    {
+                        <div class="flex-fill" style="height:2px;background:@(i < currentIdx ? "#198754" : "#dee2e6");margin-top:-16px"></div>
+                    }
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- Items -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-light fw-bold d-flex justify-content-between">
+                <span>Ordered Items (@Model.OrderDetails.Count)</span>
+                <span class="text-success fw-bold">₹@Model.GrandTotal.ToString("F2")</span>
+            </div>
+            <div class="card-body p-0">
+                @foreach (var d in Model.OrderDetails)
+                {
+                    <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+                        <img src="@(d.Product?.ImageUrl ?? "/images/no-image.png")"
+                             style="width:65px;height:65px;object-fit:contain" class="rounded border"
+                             onerror="this.src='/images/no-image.png'" />
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold">@d.Product?.ProductName</div>
+                            <small class="text-muted">@d.Product?.Category?.CategoryName</small>
+                        </div>
+                        <div class="text-center" style="min-width:80px">
+                            <div class="small text-muted">Qty</div>
+                            <div class="fw-bold">@d.Quantity</div>
+                        </div>
+                        <div class="text-center" style="min-width:90px">
+                            <div class="small text-muted">Unit Price</div>
+                            <div>₹@d.Price.ToString("F2")</div>
+                        </div>
+                        <div class="text-end" style="min-width:90px">
+                            <div class="small text-muted">Subtotal</div>
+                            <div class="fw-bold text-success">₹@d.SubTotal.ToString("F2")</div>
+                        </div>
+                    </div>
+                }
+                <div class="p-3 bg-light-subtle">
+                    <div class="d-flex justify-content-end gap-4">
+                        <div class="text-end">
+                            <div class="text-muted small">Subtotal</div>
+                            <div>₹@Model.TotalAmount.ToString("F2")</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small">Shipping</div>
+                            <div>@(Model.ShippingCharges == 0 ? "FREE" : $"₹{Model.ShippingCharges:F2}")</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small">Grand Total</div>
+                            <div class="fw-bold text-success fs-5">₹@Model.GrandTotal.ToString("F2")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Status -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                <i class="fas fa-edit me-2"></i>Update Order Status
+            </div>
+            <div class="card-body">
+                <form asp-action="UpdateOrderStatus" method="post" class="d-flex gap-3 align-items-end flex-wrap">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.OrderId" />
+                    <div>
+                        <label class="form-label fw-semibold mb-1">New Status</label>
+                        <select name="status" class="form-select">
+                            @foreach (OrderStatus s in Enum.GetValues(typeof(OrderStatus)))
+                            {
+                                if (Model.Status == s)
+                                {
+                                    <option value="@s" selected="selected">@s</option>
+                                }
+                                else
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="fas fa-save me-2"></i>Update Status
+                    </button>
+                </form>
+
+                <!-- Quick Action Buttons -->
+                <div class="mt-3 d-flex flex-wrap gap-2">
+                    @if (Model.Status == OrderStatus.Pending)
+                    {
+                        <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId"/>
+                            <input type="hidden" name="status" value="Accepted"/>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-1"></i>Accept Order
+                            </button>
+                        </form>
+                        <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId"/>
+                            <input type="hidden" name="status" value="Rejected"/>
+                            <button type="submit" class="btn btn-dark"
+                                    onclick="return confirm('Reject this order?')">
+                                <i class="fas fa-times me-1"></i>Reject Order
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status == OrderStatus.Accepted)
+                    {
+                        <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId"/>
+                            <input type="hidden" name="status" value="Dispatched"/>
+                            <button type="submit" class="btn btn-info text-white">
+                                <i class="fas fa-truck me-1"></i>Mark Dispatched
+                            </button>
+                        </form>
+                    }
+                    @if (Model.Status == OrderStatus.Dispatched)
+                    {
+                        <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId"/>
+                            <input type="hidden" name="status" value="Delivered"/>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-double me-1"></i>Mark Delivered
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Customer -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-light fw-bold">
+                <i class="fas fa-user me-2 text-primary"></i>Customer
+            </div>
+            <div class="card-body">
+                <div class="fw-semibold">@Model.User?.FullName</div>
+                <div class="text-muted small mt-1">
+                    <i class="fas fa-envelope me-1"></i>@Model.User?.Email
+                </div>
+                <div class="text-muted small mt-1">
+                    <i class="fas fa-phone me-1"></i>@Model.User?.Mobile
+                </div>
+                <a asp-action="UserDetails" asp-route-id="@Model.UserId"
+                   class="btn btn-outline-primary btn-sm mt-2">View Profile</a>
+            </div>
+        </div>
+
+        <!-- Delivery Address -->
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-light fw-bold">
+                <i class="fas fa-map-marker-alt me-2 text-danger"></i>Delivery Address
+            </div>
+            <div class="card-body small">
+                <div>@Model.DeliveryAddress</div>
+                <div>@Model.City, @Model.State – @Model.PinCode</div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="mt-2 text-muted"><em>Note: @Model.Notes</em></div>
+                }
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light fw-bold">
+                <i class="fas fa-credit-card me-2 text-success"></i>Payment
+            </div>
+            <div class="card-body small">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted">Method</td>
+                        <td class="fw-semibold">@Model.PaymentMethod</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Status</td>
+                        <td>
+                            <span class="badge @(Model.Payment?.PaymentStatus == PaymentStatus.Success ? "bg-success" :
+                                               Model.Payment?.PaymentStatus == PaymentStatus.Refunded ? "bg-secondary" :
+                                               Model.Payment?.PaymentStatus == PaymentStatus.Failed ? "bg-danger" : "bg-warning")">
+                                @(Model.Payment?.PaymentStatus.ToString() ?? "Pending")
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Amount</td>
+                        <td class="fw-bold text-success">₹@Model.GrandTotal.ToString("F2")</td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(Model.Payment?.TransactionId))
+                    {
+                        <tr>
+                            <td class="text-muted">TxnID</td>
+                            <td class="small">@Model.Payment.TransactionId</td>
+                        </tr>
+                    }
+                    <tr>
+                        <td class="text-muted">Date</td>
+                        <td>@Model.OrderDate.ToString("dd MMM yyyy")</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

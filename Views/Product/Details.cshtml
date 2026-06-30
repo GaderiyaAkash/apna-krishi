@@ -1,0 +1,217 @@
+@model ApnaKrishi.Models.Product
+@{
+    ViewData["Title"] = Model.ProductName;
+    var related = ViewBag.RelatedProducts as List<ApnaKrishi.Models.Product> ?? new();
+}
+
+<div class="container my-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Home</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index">Products</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Product" asp-action="Index" asp-route-categoryId="@Model.CategoryId">@Model.Category?.CategoryName</a></li>
+            <li class="breadcrumb-item active">@Model.ProductName</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Product Image -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm p-3">
+                <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/no-image.png" : Model.ImageUrl)"
+                     class="img-fluid rounded" alt="@Model.ProductName"
+                     style="max-height:400px;object-fit:contain;width:100%"
+                     onerror="this.src='/images/no-image.png'" />
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-md-7">
+            <span class="badge bg-success mb-2">@Model.Category?.CategoryName</span>
+            <h2 class="fw-bold">@Model.ProductName</h2>
+
+            <!-- Rating -->
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <i class="fas fa-star @(i <= Math.Round(Model.AverageRating) ? "text-warning" : "text-muted")"></i>
+                    }
+                </div>
+                <span class="text-muted">@Model.AverageRating.ToString("F1") (@Model.Reviews.Count reviews)</span>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-3">
+                <span class="display-6 fw-bold text-success">₹@Model.DiscountedPrice.ToString("F2")</span>
+                @if (Model.DiscountPercent > 0)
+                {
+                    <span class="text-muted text-decoration-line-through ms-2 fs-5">₹@Model.Price.ToString("F2")</span>
+                    <span class="badge bg-danger ms-2">@Model.DiscountPercent% OFF</span>
+                }
+            </div>
+
+            <!-- Stock -->
+            <div class="mb-3">
+                @if (Model.Stock > 10)
+                {
+                    <span class="badge bg-success-subtle text-success border border-success">
+                        <i class="fas fa-check me-1"></i>In Stock (@Model.Stock available)
+                    </span>
+                }
+                else if (Model.Stock > 0)
+                {
+                    <span class="badge bg-warning-subtle text-warning border border-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>Only @Model.Stock left!
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Out of Stock</span>
+                }
+            </div>
+
+            <hr />
+            <p>@Model.Description</p>
+            <hr />
+
+            @if (Model.Stock > 0)
+            {
+                <div class="d-flex gap-3 align-items-center mb-4">
+                    <div class="input-group" style="width:130px">
+                        <button class="btn btn-outline-secondary" type="button" id="btnMinus">−</button>
+                        <input type="number" id="qty" value="1" min="1" max="@Model.Stock"
+                               class="form-control text-center" />
+                        <button class="btn btn-outline-secondary" type="button" id="btnPlus">+</button>
+                    </div>
+
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post" id="addCartForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.ProductId" />
+                        <input type="hidden" name="quantity" id="hiddenQty" value="1" />
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                    </form>
+
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@Model.ProductId" />
+                        <input type="hidden" name="quantity" value="1" />
+                        <button type="submit" class="btn btn-warning px-4" formaction="/Order/BuyNow">
+                            <i class="fas fa-bolt me-2"></i>Buy Now
+                        </button>
+                    </form>
+                </div>
+            }
+
+            <!-- Trust Badges -->
+            <div class="d-flex gap-3 text-muted small flex-wrap">
+                <span><i class="fas fa-truck text-success me-1"></i>Free delivery ₹500+</span>
+                <span><i class="fas fa-undo text-success me-1"></i>Easy Returns</span>
+                <span><i class="fas fa-shield-alt text-success me-1"></i>100% Genuine</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="row mt-5">
+        <div class="col-lg-8">
+            <h4 class="fw-bold mb-4">Customer Reviews</h4>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h6 class="mb-3">Write a Review</h6>
+                        <form asp-controller="Product" asp-action="AddReview" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.ProductId" />
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <div class="star-rating d-flex gap-2">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        <div>
+                                            <input type="radio" name="rating" id="star@i" value="@i" class="d-none"
+                                                   required @(i == 5 ? "checked" : "") />
+                                            <label for="star@i" class="fs-4" style="cursor:pointer">⭐</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="comment" class="form-control" rows="3"
+                                          placeholder="Share your experience..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Submit Review</button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            @if (Model.Reviews.Any())
+            {
+                @foreach (var review in Model.Reviews.OrderByDescending(r => r.ReviewDate))
+                {
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>@review.User?.FullName</strong>
+                                    <div>
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            <i class="fas fa-star @(i <= review.Rating ? "text-warning" : "text-muted")" style="font-size:0.8rem"></i>
+                                        }
+                                    </div>
+                                </div>
+                                <small class="text-muted">@review.ReviewDate.ToString("dd MMM yyyy")</small>
+                            </div>
+                            @if (!string.IsNullOrEmpty(review.Comment))
+                            {
+                                <p class="mt-2 mb-0">@review.Comment</p>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">No reviews yet. Be the first to review!</p>
+            }
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    @if (related.Any())
+    {
+        <div class="mt-5">
+            <h4 class="fw-bold mb-3">Related Products</h4>
+            <div class="row g-3">
+                @foreach (var p in related)
+                {
+                    <div class="col-6 col-md-3">
+                        <partial name="_ProductCard" model="p" />
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        const qtyInput = document.getElementById('qty');
+        const hiddenQty = document.getElementById('hiddenQty');
+        const max = parseInt(qtyInput.max);
+        document.getElementById('btnMinus').addEventListener('click', () => {
+            if (parseInt(qtyInput.value) > 1) { qtyInput.value--; hiddenQty.value = qtyInput.value; }
+        });
+        document.getElementById('btnPlus').addEventListener('click', () => {
+            if (parseInt(qtyInput.value) < max) { qtyInput.value++; hiddenQty.value = qtyInput.value; }
+        });
+        qtyInput.addEventListener('change', () => { hiddenQty.value = qtyInput.value; });
+    </script>
+}

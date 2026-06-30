@@ -1,0 +1,81 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h4 class="mb-0">🌾 Join Apna Krishi</h4>
+                    <small>Create your free account</small>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-semibold"></label>
+                                <input asp-for="FullName" class="form-control" placeholder="Your full name" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Mobile" class="form-label fw-semibold"></label>
+                                <input asp-for="Mobile" class="form-control" placeholder="10-digit mobile number" />
+                                <span asp-validation-for="Mobile" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Email" class="form-label fw-semibold"></label>
+                                <input asp-for="Email" class="form-control" placeholder="your@email.com" />
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label fw-semibold"></label>
+                                <textarea asp-for="Address" class="form-control" rows="2"
+                                          placeholder="House no, Street, Village/Area"></textarea>
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label fw-semibold"></label>
+                                <input asp-for="City" class="form-control" placeholder="City" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="State" class="form-label fw-semibold"></label>
+                                <input asp-for="State" class="form-control" placeholder="State" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="PinCode" class="form-label fw-semibold"></label>
+                                <input asp-for="PinCode" class="form-control" placeholder="Pin Code" />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Password" class="form-label fw-semibold"></label>
+                                <input asp-for="Password" class="form-control" placeholder="Min 6 characters" />
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Re-enter password" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mt-3 small"></div>
+
+                        <button type="submit" class="btn btn-success w-100 mt-4 py-2 fw-bold">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <span class="text-muted">Already have an account?</span>
+                        <a asp-controller="Account" asp-action="Login" class="text-success fw-bold ms-1">Login here</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,252 @@
+@model WebsiteSettingsViewModel
+@{
+    ViewData["Title"] = "Settings";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Website Settings</h5>
+    <small class="text-muted">Changes take effect immediately.</small>
+</div>
+
+<form asp-action="Settings" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-4">
+
+        <!-- General Settings -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-globe me-2 text-success"></i>General Information
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="SiteName" class="form-label fw-semibold"></label>
+                            <input asp-for="SiteName" class="form-control" />
+                            <span asp-validation-for="SiteName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Tagline" class="form-label fw-semibold"></label>
+                            <input asp-for="Tagline" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ContactEmail" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input asp-for="ContactEmail" class="form-control" />
+                            </div>
+                            <span asp-validation-for="ContactEmail" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ContactPhone" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                <input asp-for="ContactPhone" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Address" class="form-label fw-semibold"></label>
+                            <input asp-for="Address" class="form-control" />
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="MetaDescription" class="form-label fw-semibold"></label>
+                            <textarea asp-for="MetaDescription" class="form-control" rows="2"
+                                      placeholder="Used for SEO meta description tag"></textarea>
+                            <span asp-validation-for="MetaDescription" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shipping & Pricing -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-truck me-2 text-primary"></i>Shipping &amp; Pricing
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="FreeShippingThreshold" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input asp-for="FreeShippingThreshold" type="number"
+                                       class="form-control" step="1" min="0" />
+                            </div>
+                            <small class="text-muted">Orders above this get free shipping.</small>
+                            <span asp-validation-for="FreeShippingThreshold" class="text-danger small d-block"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="ShippingCharge" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input asp-for="ShippingCharge" type="number"
+                                       class="form-control" step="1" min="0" />
+                            </div>
+                            <small class="text-muted">Flat charge when below threshold.</small>
+                            <span asp-validation-for="ShippingCharge" class="text-danger small d-block"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="GstPercent" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="GstPercent" type="number"
+                                       class="form-control" step="0.1" min="0" max="28" />
+                                <span class="input-group-text">%</span>
+                            </div>
+                            <small class="text-muted">Set 0 to disable GST display.</small>
+                            <span asp-validation-for="GstPercent" class="text-danger small d-block"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1 text-info"></i>
+                            Current rule: Orders above
+                            <strong>₹@Model.FreeShippingThreshold.ToString("N0")</strong>
+                            get free delivery. Others pay
+                            <strong>₹@Model.ShippingCharge.ToString("N0")</strong>.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Social Media -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-share-alt me-2 text-info"></i>Social Media Links
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="FacebookUrl" class="form-label fw-semibold">
+                                <i class="fab fa-facebook text-primary me-1"></i>Facebook
+                            </label>
+                            <input asp-for="FacebookUrl" class="form-control"
+                                   placeholder="https://facebook.com/..." />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="InstagramUrl" class="form-label fw-semibold">
+                                <i class="fab fa-instagram text-danger me-1"></i>Instagram
+                            </label>
+                            <input asp-for="InstagramUrl" class="form-control"
+                                   placeholder="https://instagram.com/..." />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="TwitterUrl" class="form-label fw-semibold">
+                                <i class="fab fa-twitter text-info me-1"></i>Twitter / X
+                            </label>
+                            <input asp-for="TwitterUrl" class="form-control"
+                                   placeholder="https://twitter.com/..." />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="col-lg-4">
+
+            <!-- Access Controls -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-shield-alt me-2 text-warning"></i>Access Controls
+                </div>
+                <div class="card-body p-3">
+                    <div class="form-check form-switch mb-3">
+                        <input asp-for="MaintenanceMode" class="form-check-input" type="checkbox"
+                               role="switch" id="maintenanceToggle" />
+                        <label asp-for="MaintenanceMode" class="form-check-label fw-semibold">
+                            Maintenance Mode
+                        </label>
+                        <div class="text-muted small mt-1">
+                            When enabled, visitors see a maintenance page.
+                        </div>
+                        @if (Model.MaintenanceMode)
+                        {
+                            <div class="alert alert-warning py-1 px-2 mt-2 small mb-0">
+                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                Site is currently in maintenance mode!
+                            </div>
+                        }
+                    </div>
+                    <hr />
+                    <div class="form-check form-switch">
+                        <input asp-for="AllowRegistrations" class="form-check-input" type="checkbox"
+                               role="switch" />
+                        <label asp-for="AllowRegistrations" class="form-check-label fw-semibold">
+                            Allow New Registrations
+                        </label>
+                        <div class="text-muted small mt-1">
+                            Disable to prevent new user sign-ups.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Account -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-user-shield me-2 text-danger"></i>Admin Account
+                </div>
+                <div class="list-group list-group-flush">
+                    <a asp-controller="User" asp-action="Profile"
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-user-edit me-2 text-primary"></i>Edit Profile
+                    </a>
+                    <a asp-controller="User" asp-action="ChangePassword"
+                       class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2 text-warning"></i>Change Password
+                    </a>
+                </div>
+            </div>
+
+            <!-- System Info -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light fw-bold">
+                    <i class="fas fa-server me-2 text-secondary"></i>System Info
+                </div>
+                <div class="card-body p-3">
+                    <table class="table table-sm table-borderless mb-0 small">
+                        <tr>
+                            <td class="text-muted">Framework</td>
+                            <td class="fw-semibold">ASP.NET Core 8.0</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">ORM</td>
+                            <td class="fw-semibold">Entity Framework Core</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Auth</td>
+                            <td class="fw-semibold">ASP.NET Identity</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Payment</td>
+                            <td class="fw-semibold">Razorpay / COD</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Server Time</td>
+                            <td class="fw-semibold">@DateTime.Now.ToString("hh:mm tt")</td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Date</td>
+                            <td class="fw-semibold">@DateTime.Now.ToString("dd MMM yyyy")</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="d-flex gap-3 mt-2 pb-4">
+        <button type="submit" class="btn btn-success px-5 py-2 fw-bold">
+            <i class="fas fa-save me-2"></i>Save All Settings
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

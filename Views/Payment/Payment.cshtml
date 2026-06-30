@@ -1,0 +1,75 @@
+@model ApnaKrishi.Models.Order
+@{
+    ViewData["Title"] = "Complete Payment";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h4 class="mb-0"><i class="fas fa-lock me-2"></i>Secure Payment</h4>
+                    <small>Order #@Model.OrderId</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="display-6 fw-bold text-success">₹@Model.GrandTotal.ToString("F2")</div>
+                        <small class="text-muted">Total Amount to Pay</small>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You will be redirected to Razorpay's secure payment gateway.
+                    </div>
+
+                    <div class="d-flex justify-content-center gap-3 mb-3 flex-wrap">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Paytm_Logo_%28standalone%29.svg/200px-Paytm_Logo_%28standalone%29.svg.png" height="30" alt="Paytm" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/200px-UPI-Logo-vector.svg.png" height="30" alt="UPI" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Visa_2021.svg/200px-Visa_2021.svg.png" height="30" alt="Visa" />
+                    </div>
+
+                    <button id="rzp-button" class="btn btn-success w-100 py-2 fw-bold btn-lg">
+                        <i class="fas fa-credit-card me-2"></i>Pay ₹@Model.GrandTotal.ToString("F2")
+                    </button>
+
+                    <!-- Hidden verify form -->
+                    <form id="paymentForm" asp-controller="Payment" asp-action="VerifyPayment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <input type="hidden" name="razorpayPaymentId" id="razorpay_payment_id" />
+                        <input type="hidden" name="razorpayOrderId" id="razorpay_order_id" />
+                        <input type="hidden" name="razorpaySignature" id="razorpay_signature" />
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        var options = {
+            key: '@ViewBag.RazorpayKey',
+            amount: '@ViewBag.Amount',
+            currency: 'INR',
+            name: 'Apna Krishi',
+            description: 'Order #@Model.OrderId',
+            order_id: '@ViewBag.RazorpayOrderId',
+            prefill: {
+                name: '@ViewBag.UserName',
+                email: '@ViewBag.UserEmail',
+                contact: '@ViewBag.UserPhone'
+            },
+            theme: { color: '#2e7d32' },
+            handler: function (response) {
+                document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+                document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+                document.getElementById('razorpay_signature').value = response.razorpay_signature;
+                document.getElementById('paymentForm').submit();
+            }
+        };
+        var rzp = new Razorpay(options);
+        document.getElementById('rzp-button').onclick = function (e) { rzp.open(); e.preventDefault(); };
+    </script>
+}

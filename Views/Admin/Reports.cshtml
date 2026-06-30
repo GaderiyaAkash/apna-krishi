@@ -1,0 +1,427 @@
+@model ReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "_AdminLayout";
+}
+
+<!-- Report Type Tabs -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="mb-0">Reports &amp; Analytics</h5>
+</div>
+
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex flex-wrap gap-2">
+            @{
+                var tabs = new[]
+                {
+                    ("daily",    "Daily Sales",    "fas fa-calendar-day",   "success"),
+                    ("monthly",  "Monthly Sales",  "fas fa-calendar-alt",   "primary"),
+                    ("product",  "Product Sales",  "fas fa-box-open",       "warning"),
+                    ("customer", "Customer Report","fas fa-users",          "info"),
+                };
+            }
+            @foreach (var (val, label, icon, color) in tabs)
+            {
+                var active = Model.ReportType == val;
+                <a asp-action="Reports" asp-route-type="@val"
+                   asp-route-from="@Model.FromDate?.ToString("yyyy-MM-dd")"
+                   asp-route-to="@Model.ToDate?.ToString("yyyy-MM-dd")"
+                   class="btn btn-sm @(active ? $"btn-{color}" : $"btn-outline-{color}")">
+                    <i class="@icon me-1"></i>@label
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Date Filter (for daily / product / customer) -->
+@if (Model.ReportType != "monthly")
+{
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2">
+            <form method="get" class="d-flex flex-wrap gap-2 align-items-end">
+                <input type="hidden" name="type" value="@Model.ReportType" />
+                <div>
+                    <label class="form-label mb-1 small fw-semibold">From</label>
+                    <input type="date" name="from" class="form-control form-control-sm"
+                           value="@Model.FromDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <div>
+                    <label class="form-label mb-1 small fw-semibold">To</label>
+                    <input type="date" name="to" class="form-control form-control-sm"
+                           value="@Model.ToDate?.ToString("yyyy-MM-dd")" />
+                </div>
+                <button type="submit" class="btn btn-success btn-sm align-self-end">
+                    <i class="fas fa-filter me-1"></i>Apply
+                </button>
+                <a asp-action="Reports" asp-route-type="@Model.ReportType"
+                   class="btn btn-outline-secondary btn-sm align-self-end">Reset</a>
+            </form>
+        </div>
+    </div>
+}
+
+@* ── DAILY SALES ── *@
+@if (Model.ReportType == "daily")
+{
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-success border-4">
+                <div class="fs-2 fw-bold text-success">@Model.DailyOrderCount</div>
+                <div class="text-muted small">Orders in Period</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-primary border-4">
+                <div class="fs-2 fw-bold text-primary">₹@Model.DailyRevenue.ToString("N2")</div>
+                <div class="text-muted small">Revenue in Period</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-warning border-4">
+                <div class="fs-2 fw-bold text-warning">
+                    @(Model.DailyOrderCount > 0
+                        ? $"₹{(Model.DailyRevenue / Model.DailyOrderCount):N0}"
+                        : "–")
+                </div>
+                <div class="text-muted small">Avg. Order Value</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
+            <span>Orders: @Model.FromDate?.ToString("dd MMM") – @Model.ToDate?.ToString("dd MMM yyyy")</span>
+            <span class="text-muted small">@Model.DailyOrderCount order(s)</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date &amp; Time</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.DailyOrders.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">No orders in this period.</td></tr>
+                    }
+                    @foreach (var o in Model.DailyOrders)
+                    {
+                        <tr>
+                            <td class="fw-bold"><a asp-action="OrderDetails" asp-route-id="@o.OrderId">#@o.OrderId</a></td>
+                            <td>
+                                <div class="small fw-semibold">@o.User?.FullName</div>
+                                <small class="text-muted">@o.User?.Email</small>
+                            </td>
+                            <td class="small">@o.OrderDate.ToString("dd MMM yyyy, hh:mm tt")</td>
+                            <td class="small">–</td>
+                            <td class="fw-bold text-success">₹@o.GrandTotal.ToString("F2")</td>
+                            <td><small>@o.PaymentMethod</small></td>
+                            <td>
+                                <span class="badge
+                                    @(o.Status == OrderStatus.Delivered  ? "bg-success" :
+                                      o.Status == OrderStatus.Cancelled  ? "bg-danger"  :
+                                      o.Status == OrderStatus.Dispatched ? "bg-info"    :
+                                      o.Status == OrderStatus.Accepted   ? "bg-primary" : "bg-warning")">
+                                    @o.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model.DailyOrders.Any())
+                {
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="fw-bold text-end">Total Revenue:</td>
+                            <td class="fw-bold text-success">₹@Model.DailyRevenue.ToString("F2")</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+}
+
+@* ── MONTHLY SALES ── *@
+@if (Model.ReportType == "monthly")
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-success border-4">
+                <div class="fs-2 fw-bold text-success">@Model.MonthlyData.Sum(r => r.OrderCount)</div>
+                <div class="text-muted small">Total Orders (All Time)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-primary border-4">
+                <div class="fs-2 fw-bold text-primary">₹@Model.MonthlyTotal.ToString("N0")</div>
+                <div class="text-muted small">Total Revenue (Delivered)</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-info border-4">
+                <div class="fs-2 fw-bold text-info">@Model.MonthlyData.Count</div>
+                <div class="text-muted small">Active Months</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light fw-bold">Monthly Revenue Trend</div>
+        <div class="card-body">
+            <canvas id="monthlyChart" height="60"></canvas>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light fw-bold">Monthly Breakdown</div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Month</th>
+                        <th class="text-center">Orders</th>
+                        <th class="text-end">Revenue</th>
+                        <th class="text-end">Avg. Order Value</th>
+                        <th>Revenue Bar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var maxRev = Model.MonthlyData.Any() ? Model.MonthlyData.Max(r => r.Revenue) : 1;
+                    }
+                    @if (!Model.MonthlyData.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">No data yet.</td></tr>
+                    }
+                    @foreach (var row in Model.MonthlyData)
+                    {
+                        var pct = maxRev > 0 ? (int)(row.Revenue / maxRev * 100) : 0;
+                        <tr>
+                            <td class="fw-semibold">@row.MonthName</td>
+                            <td class="text-center">@row.OrderCount</td>
+                            <td class="text-end fw-bold text-success">₹@row.Revenue.ToString("N2")</td>
+                            <td class="text-end">
+                                @(row.OrderCount > 0
+                                    ? $"₹{(row.Revenue / row.OrderCount):N0}"
+                                    : "–")
+                            </td>
+                            <td style="min-width:150px">
+                                <div class="progress" style="height:10px">
+                                    <div class="progress-bar bg-success" style="width:@pct%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model.MonthlyData.Any())
+                {
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>Total</td>
+                            <td class="text-center">@Model.MonthlyData.Sum(r => r.OrderCount)</td>
+                            <td class="text-end text-success">₹@Model.MonthlyTotal.ToString("N2")</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+}
+
+@* ── PRODUCT SALES ── *@
+@if (Model.ReportType == "product")
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light fw-bold d-flex justify-content-between">
+            <span>Product Sales Report</span>
+            <small class="text-muted">@Model.ProductSalesData.Count products</small>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th class="text-center">Qty Sold</th>
+                        <th class="text-center">Orders</th>
+                        <th class="text-end">Revenue</th>
+                        <th>Revenue Share</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var totalProdRev = Model.ProductSalesData.Sum(p => p.TotalRevenue);
+                        var maxProdRev = Model.ProductSalesData.Any()
+                            ? Model.ProductSalesData.Max(p => p.TotalRevenue) : 1;
+                    }
+                    @if (!Model.ProductSalesData.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-4">No product sales data in this period.</td></tr>
+                    }
+                    @for (int i = 0; i < Model.ProductSalesData.Count; i++)
+                    {
+                        var row = Model.ProductSalesData[i];
+                        var sharePct = totalProdRev > 0 ? (int)(row.TotalRevenue / totalProdRev * 100) : 0;
+                        var barPct   = maxProdRev > 0   ? (int)(row.TotalRevenue / maxProdRev * 100) : 0;
+                        <tr>
+                            <td class="text-muted small">@(i + 1)</td>
+                            <td>
+                                <div class="fw-semibold small">@row.ProductName</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@row.CategoryName</span></td>
+                            <td class="text-center fw-bold">@row.TotalQuantitySold</td>
+                            <td class="text-center">@row.OrderCount</td>
+                            <td class="text-end fw-bold text-success">₹@row.TotalRevenue.ToString("N2")</td>
+                            <td style="min-width:130px">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="progress flex-grow-1" style="height:8px">
+                                        <div class="progress-bar bg-success" style="width:@barPct%"></div>
+                                    </div>
+                                    <small class="text-muted" style="min-width:30px">@sharePct%</small>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                @if (Model.ProductSalesData.Any())
+                {
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="3">Total</td>
+                            <td class="text-center">@Model.ProductSalesData.Sum(r => r.TotalQuantitySold)</td>
+                            <td class="text-center">@Model.ProductSalesData.Sum(r => r.OrderCount)</td>
+                            <td class="text-end text-success">₹@totalProdRev.ToString("N2")</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+}
+
+@* ── CUSTOMER REPORT ── *@
+@if (Model.ReportType == "customer")
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-info border-4">
+                <div class="fs-2 fw-bold text-info">@Model.CustomerData.Count</div>
+                <div class="text-muted small">Active Customers</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-success border-4">
+                <div class="fs-2 fw-bold text-success">
+                    ₹@Model.CustomerData.Sum(c => c.TotalSpent).ToString("N0")
+                </div>
+                <div class="text-muted small">Total Customer Spend</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm text-center py-3 border-start border-warning border-4">
+                <div class="fs-2 fw-bold text-warning">
+                    @(Model.CustomerData.Any()
+                        ? $"₹{(Model.CustomerData.Sum(c => c.TotalSpent) / Model.CustomerData.Count):N0}"
+                        : "–")
+                </div>
+                <div class="text-muted small">Avg. Spend per Customer</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light fw-bold d-flex justify-content-between">
+            <span>Customer Report</span>
+            <small class="text-muted">@Model.CustomerData.Count customers</small>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Customer</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th class="text-center">Orders</th>
+                        <th class="text-end">Total Spent</th>
+                        <th>Last Order</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.CustomerData.Any())
+                    {
+                        <tr><td colspan="8" class="text-center text-muted py-4">No customer data in this period.</td></tr>
+                    }
+                    @for (int i = 0; i < Model.CustomerData.Count; i++)
+                    {
+                        var c = Model.CustomerData[i];
+                        <tr>
+                            <td class="text-muted small">@(i + 1)</td>
+                            <td>
+                                <a asp-action="UserDetails" asp-route-id="@c.CustomerId"
+                                   class="fw-semibold text-decoration-none">@c.CustomerName</a>
+                            </td>
+                            <td class="small text-muted">@c.Email</td>
+                            <td class="small">@(string.IsNullOrEmpty(c.Mobile) ? "–" : c.Mobile)</td>
+                            <td class="text-center fw-bold">@c.TotalOrders</td>
+                            <td class="text-end fw-bold text-success">₹@c.TotalSpent.ToString("N2")</td>
+                            <td class="small text-muted">@c.LastOrderDate.ToString("dd MMM yyyy")</td>
+                            <td class="small text-muted">@c.RegisteredDate.ToString("dd MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section Scripts {
+@if (Model.ReportType == "monthly" && Model.MonthlyData.Any())
+{
+    <script>
+        const mLabels = @Html.Raw("[" + string.Join(",", Model.MonthlyData.OrderBy(r => r.Year).ThenBy(r => r.Month).Select(r => $"'{r.MonthName}'")) + "]");
+        const mData   = @Html.Raw("[" + string.Join(",", Model.MonthlyData.OrderBy(r => r.Year).ThenBy(r => r.Month).Select(r => r.Revenue.ToString("F0"))) + "]");
+
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'line',
+            data: {
+                labels: mLabels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: mData,
+                    borderColor: '#2e7d32',
+                    backgroundColor: 'rgba(46,125,50,0.1)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#2e7d32',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } }
+                }
+            }
+        });
+    </script>
+}
+}

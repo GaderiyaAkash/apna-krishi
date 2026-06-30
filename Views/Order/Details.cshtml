@@ -1,0 +1,127 @@
+@model ApnaKrishi.Models.Order
+@{
+    ViewData["Title"] = $"Order #{Model.OrderId}";
+}
+
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0">Order #@Model.OrderId</h2>
+        <a asp-action="MyOrders" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back to Orders
+        </a>
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between text-center">
+                @{
+                    var statuses = new[] { "Pending", "Accepted", "Dispatched", "Delivered" };
+                    var currentIdx = Array.IndexOf(statuses, Model.Status.ToString());
+                }
+                @for (int i = 0; i < statuses.Length; i++)
+                {
+                    <div class="flex-fill">
+                        <div class="rounded-circle mx-auto mb-1 d-flex align-items-center justify-content-center
+                             @(i <= currentIdx ? "bg-success text-white" : "bg-light text-muted")"
+                             style="width:40px;height:40px;font-weight:bold">
+                            @(i <= currentIdx ? "✓" : (i + 1).ToString())
+                        </div>
+                        <small class="@(i <= currentIdx ? "text-success fw-bold" : "text-muted")">@statuses[i]</small>
+                    </div>
+                    @if (i < statuses.Length - 1)
+                    {
+                        <div class="flex-fill d-flex align-items-center mt-2" style="height:2px;margin-top:-24px!important">
+                            <div class="w-100 @(i < currentIdx ? "bg-success" : "bg-light")" style="height:2px"></div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Items -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">Ordered Items</div>
+                <div class="card-body p-0">
+                    @foreach (var detail in Model.OrderDetails)
+                    {
+                        <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+                            <img src="@(detail.Product?.ImageUrl ?? "/images/no-image.png")"
+                                 style="width:65px;height:65px;object-fit:contain" class="rounded border" />
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">@detail.Product?.ProductName</div>
+                                <small class="text-muted">@detail.Product?.Category?.CategoryName</small><br />
+                                <small>Qty: @detail.Quantity × ₹@detail.Price.ToString("F2")</small>
+                            </div>
+                            <span class="fw-bold text-success">₹@detail.SubTotal.ToString("F2")</span>
+                        </div>
+                    }
+                    <div class="p-3">
+                        <div class="d-flex justify-content-between text-muted mb-1">
+                            <span>Subtotal</span><span>₹@Model.TotalAmount.ToString("F2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted mb-1">
+                            <span>Shipping</span>
+                            <span>@(Model.ShippingCharges == 0 ? "FREE" : $"₹{Model.ShippingCharges:F2}")</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between fw-bold fs-5">
+                            <span>Grand Total</span>
+                            <span class="text-success">₹@Model.GrandTotal.ToString("F2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Delivery Info -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-light fw-bold">Delivery Address</div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.DeliveryAddress<br />
+                        @Model.City, @Model.State – @Model.PinCode</p>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-light fw-bold">Payment</div>
+                <div class="card-body">
+                    <div class="mb-1"><span class="text-muted">Method:</span> @Model.PaymentMethod</div>
+                    <div><span class="text-muted">Status:</span>
+                        <span class="badge @(Model.Payment?.PaymentStatus == PaymentStatus.Success ? "bg-success" : "bg-warning")">
+                            @Model.Payment?.PaymentStatus
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Payment?.TransactionId))
+                    {
+                        <div class="mt-1"><small class="text-muted">TxnID: @Model.Payment.TransactionId</small></div>
+                    }
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+                <a asp-action="DownloadInvoice" asp-route-orderId="@Model.OrderId"
+                   class="btn btn-outline-success">
+                    <i class="fas fa-download me-2"></i>Download Invoice
+                </a>
+                @if (Model.Status == OrderStatus.Pending || Model.Status == OrderStatus.Accepted)
+                {
+                    <form asp-action="Cancel" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <button type="submit" class="btn btn-outline-danger w-100"
+                                onclick="return confirm('Cancel this order?')">
+                            <i class="fas fa-times me-2"></i>Cancel Order
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,153 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Banner -->
+<div class="hero-banner position-relative text-white mb-5"
+     style="background: linear-gradient(135deg, #1b5e20 0%, #388e3c 50%, #66bb6a 100%); min-height:480px">
+    <div class="container d-flex align-items-center" style="min-height:480px">
+        <div class="row align-items-center w-100">
+            <div class="col-lg-6">
+                <span class="badge bg-warning text-dark mb-3 px-3 py-2">🌱 Trusted by 50,000+ Farmers</span>
+                <h1 class="display-4 fw-bold mb-3">Khet Ka Saathi,<br/>
+                    <span class="text-warning">Apna Krishi</span>
+                </h1>
+                <p class="lead mb-4 opacity-90">Quality seeds, fertilizers, pesticides & farming tools delivered to your doorstep.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-warning btn-lg fw-bold px-4">
+                        <i class="fas fa-shopping-bag me-2"></i>Shop Now
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-light btn-lg px-4">
+                        <i class="fas fa-user-plus me-2"></i>Join Free
+                    </a>
+                </div>
+                <div class="mt-4 d-flex gap-4 text-white-50 small">
+                    <span><i class="fas fa-truck me-1 text-warning"></i>Free Delivery ₹500+</span>
+                    <span><i class="fas fa-shield-alt me-1 text-warning"></i>100% Genuine</span>
+                    <span><i class="fas fa-undo me-1 text-warning"></i>Easy Returns</span>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center d-none d-lg-block">
+                <div style="font-size:12rem; opacity:0.3">🌾</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Category Cards -->
+    <section class="mb-5">
+        <h2 class="section-title text-center mb-4">Shop by Category</h2>
+        <div class="row g-3">
+            @foreach (var cat in Model.Categories)
+            {
+                <div class="col-6 col-md-3">
+                    <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@cat.CategoryId"
+                       class="text-decoration-none">
+                        <div class="card border-0 shadow-sm text-center p-3 h-100 category-card">
+                            <div style="font-size:3rem">
+                                @switch (cat.CategoryName)
+                                {
+                                    case "Fertilizers": <text>🧪</text> break;
+                                    case "Seeds": <text>🌱</text> break;
+                                    case "Pesticides": <text>🐛</text> break;
+                                    case "Farming Tools": <text>🔧</text> break;
+                                    default: <text>🌿</text> break;
+                                }
+                            </div>
+                            <h6 class="mt-2 text-success fw-bold">@cat.CategoryName</h6>
+                            <small class="text-muted">@cat.Description</small>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    @if (Model.FeaturedProducts.Any())
+    {
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">⭐ Featured Products</h2>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-success btn-sm">View All</a>
+            </div>
+            <div class="row g-3">
+                @foreach (var p in Model.FeaturedProducts)
+                {
+                    <div class="col-6 col-md-4 col-lg-3">
+                        <partial name="_ProductCard" model="p" />
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- Best Sellers -->
+    @if (Model.BestSellers.Any())
+    {
+        <section class="mb-5 bg-light rounded p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">🔥 Best Sellers</h2>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-success btn-sm">View All</a>
+            </div>
+            <div class="row g-3">
+                @foreach (var p in Model.BestSellers)
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <partial name="_ProductCard" model="p" />
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- New Arrivals -->
+    @if (Model.NewArrivals.Any())
+    {
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">🆕 New Arrivals</h2>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-success btn-sm">View All</a>
+            </div>
+            <div class="row g-3">
+                @foreach (var p in Model.NewArrivals)
+                {
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <partial name="_ProductCard" model="p" />
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- Why Choose Us -->
+    <section class="mb-5 py-4 bg-success text-white rounded">
+        <h2 class="text-center mb-4">Why Choose Apna Krishi?</h2>
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <i class="fas fa-certificate fa-2x mb-2 text-warning"></i>
+                <h6>100% Genuine</h6>
+                <small>Certified & authentic products</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <i class="fas fa-truck fa-2x mb-2 text-warning"></i>
+                <h6>Fast Delivery</h6>
+                <small>Delivered to your farm</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <i class="fas fa-headset fa-2x mb-2 text-warning"></i>
+                <h6>Expert Support</h6>
+                <small>24/7 farming guidance</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <i class="fas fa-rupee-sign fa-2x mb-2 text-warning"></i>
+                <h6>Best Prices</h6>
+                <small>Lowest prices guaranteed</small>
+            </div>
+        </div>
+    </section>
+
+</div>

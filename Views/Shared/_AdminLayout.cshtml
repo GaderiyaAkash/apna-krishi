@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin – @ViewData["Title"] | Apna Krishi</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body>
+
+<div class="d-flex" id="adminWrapper">
+
+    <!-- ── Sidebar ── -->
+    <nav id="adminSidebar" class="sidebar bg-dark text-white"
+         style="width:240px;min-height:100vh;position:fixed;top:0;left:0;z-index:1000;overflow-y:auto;transition:width 0.2s">
+
+        <!-- Brand -->
+        <div class="p-3 border-bottom border-secondary d-flex align-items-center gap-2">
+            <span style="font-size:1.5rem">🌾</span>
+            <div>
+                <div class="fw-bold text-success lh-1">Apna Krishi</div>
+                <small class="text-muted" style="font-size:0.7rem">Admin Panel</small>
+            </div>
+        </div>
+
+        <!-- Nav Items -->
+        <ul class="nav flex-column p-2 mt-1">
+
+            <!-- Dashboard -->
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
+                   asp-controller="Admin" asp-action="Index">
+                    <i class="fas fa-tachometer-alt fa-fw me-2"></i>Dashboard
+                </a>
+            </li>
+
+            <!-- Catalogue -->
+            <li class="nav-item mt-2">
+                <small class="text-uppercase text-muted px-3" style="font-size:0.65rem;letter-spacing:.08em">
+                    Catalogue
+                </small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString()?.StartsWith("Category") == true || ViewContext.RouteData.Values["action"]?.ToString() == "Categories" ? "active" : "")"
+                   asp-controller="Admin" asp-action="Categories">
+                    <i class="fas fa-tags fa-fw me-2"></i>Categories
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(new[]{"Products","AddProduct","EditProduct"}.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : "")"
+                   asp-controller="Admin" asp-action="Products">
+                    <i class="fas fa-box-open fa-fw me-2"></i>Products
+                </a>
+            </li>
+
+            <!-- Sales -->
+            <li class="nav-item mt-2">
+                <small class="text-uppercase text-muted px-3" style="font-size:0.65rem;letter-spacing:.08em">
+                    Sales
+                </small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(new[]{"Orders","OrderDetails"}.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : "")"
+                   asp-controller="Admin" asp-action="Orders">
+                    <i class="fas fa-shopping-bag fa-fw me-2"></i>Orders
+                    @{
+                        // show pending badge from TempData-like approach via ViewBag
+                    }
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(new[]{"Payments"}.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : "")"
+                   asp-controller="Admin" asp-action="Payments">
+                    <i class="fas fa-rupee-sign fa-fw me-2"></i>Payments
+                </a>
+            </li>
+
+            <!-- People -->
+            <li class="nav-item mt-2">
+                <small class="text-uppercase text-muted px-3" style="font-size:0.65rem;letter-spacing:.08em">
+                    People
+                </small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(new[]{"Users","UserDetails"}.Contains(ViewContext.RouteData.Values["action"]?.ToString()) ? "active" : "")"
+                   asp-controller="Admin" asp-action="Users">
+                    <i class="fas fa-users fa-fw me-2"></i>Users
+                </a>
+            </li>
+
+            <!-- Analytics -->
+            <li class="nav-item mt-2">
+                <small class="text-uppercase text-muted px-3" style="font-size:0.65rem;letter-spacing:.08em">
+                    Analytics
+                </small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reports" ? "active" : "")"
+                   asp-controller="Admin" asp-action="Reports">
+                    <i class="fas fa-chart-bar fa-fw me-2"></i>Reports
+                </a>
+            </li>
+
+            <!-- System -->
+            <li class="nav-item mt-2">
+                <small class="text-uppercase text-muted px-3" style="font-size:0.65rem;letter-spacing:.08em">
+                    System
+                </small>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")"
+                   asp-controller="Admin" asp-action="Settings">
+                    <i class="fas fa-cog fa-fw me-2"></i>Settings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link sidebar-link" asp-controller="Home" asp-action="Index" target="_blank">
+                    <i class="fas fa-external-link-alt fa-fw me-2"></i>View Store
+                </a>
+            </li>
+            <li class="nav-item mt-2">
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="nav-link sidebar-link text-danger btn btn-link w-100 text-start border-0 bg-transparent">
+                        <i class="fas fa-sign-out-alt fa-fw me-2"></i>Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- ── Main Content ── -->
+    <div id="adminContent" style="margin-left:240px;width:calc(100% - 240px);transition:all 0.2s">
+
+        <!-- Top Bar -->
+        <div class="bg-white border-bottom px-4 py-2 d-flex justify-content-between align-items-center sticky-top"
+             style="top:0;z-index:500">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-light border" id="sidebarToggle" title="Toggle Sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <nav aria-label="breadcrumb" class="mb-0">
+                    <ol class="breadcrumb mb-0 small">
+                        <li class="breadcrumb-item">
+                            <a asp-action="Index" class="text-success text-decoration-none">Dashboard</a>
+                        </li>
+                        @if (ViewData["Title"]?.ToString() != "Dashboard")
+                        {
+                            <li class="breadcrumb-item active">@ViewData["Title"]</li>
+                        }
+                    </ol>
+                </nav>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a asp-controller="Admin" asp-action="Orders" asp-route-status="Pending"
+                   class="btn btn-sm btn-warning position-relative" title="Pending Orders">
+                    <i class="fas fa-bell"></i>
+                </a>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-shield me-1 text-success"></i>
+                        <span class="small">@User.Identity?.Name?.Split('@')[0]</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" asp-controller="User" asp-action="Profile">
+                            <i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Settings">
+                            <i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"/></li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="dropdown-item text-danger">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="px-4 pt-3">
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show py-2 d-flex align-items-center gap-2">
+                    <i class="fas fa-check-circle"></i>
+                    <span>@Html.Raw(TempData["Success"])</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show py-2 d-flex align-items-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span>@Html.Raw(TempData["Error"])</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            }
+        </div>
+
+        <!-- Page Content -->
+        <div class="p-4">
+            @RenderBody()
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+    // ── Sidebar Toggle ──
+    const sidebar  = document.getElementById('adminSidebar');
+    const content  = document.getElementById('adminContent');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    let collapsed = false;
+
+    toggleBtn.addEventListener('click', () => {
+        collapsed = !collapsed;
+        if (collapsed) {
+            sidebar.style.width  = '0';
+            content.style.marginLeft = '0';
+            content.style.width  = '100%';
+        } else {
+            sidebar.style.width  = '240px';
+            content.style.marginLeft = '240px';
+            content.style.width  = 'calc(100% - 240px)';
+        }
+    });
+
+    // ── Auto-dismiss success alerts ──
+    document.querySelectorAll('.alert-success').forEach(a => {
+        setTimeout(() => bootstrap.Alert.getOrCreateInstance(a)?.close(), 4000);
+    });
+</script>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

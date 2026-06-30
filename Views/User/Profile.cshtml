@@ -1,0 +1,81 @@
+@model ProfileViewModel
+@{ ViewData["Title"] = "My Profile"; }
+
+<div class="container my-4">
+    <div class="row g-4">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-4">
+                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width:80px;height:80px;font-size:2rem">
+                        @Model.FullName.Substring(0, 1).ToUpper()
+                    </div>
+                    <h5 class="mb-1">@Model.FullName</h5>
+                    <small class="text-muted">@Model.Email</small>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a asp-action="Profile" class="list-group-item list-group-item-action active">
+                        <i class="fas fa-user me-2"></i>Edit Profile
+                    </a>
+                    <a asp-action="ChangePassword" class="list-group-item list-group-item-action">
+                        <i class="fas fa-key me-2"></i>Change Password
+                    </a>
+                    <a asp-controller="Order" asp-action="MyOrders" class="list-group-item list-group-item-action">
+                        <i class="fas fa-box me-2"></i>My Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="col-md-9">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white fw-bold">
+                    <i class="fas fa-user-edit me-2"></i>Edit Profile
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Profile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-semibold"></label>
+                                <input asp-for="FullName" class="form-control" />
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Mobile" class="form-label fw-semibold"></label>
+                                <input asp-for="Mobile" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Email" class="form-label fw-semibold"></label>
+                                <input asp-for="Email" class="form-control" readonly />
+                                <small class="text-muted">Email cannot be changed.</small>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label fw-semibold"></label>
+                                <textarea asp-for="Address" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label fw-semibold"></label>
+                                <input asp-for="City" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="State" class="form-label fw-semibold"></label>
+                                <input asp-for="State" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="PinCode" class="form-label fw-semibold"></label>
+                                <input asp-for="PinCode" class="form-control" />
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success mt-4 px-4">
+                            <i class="fas fa-save me-2"></i>Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

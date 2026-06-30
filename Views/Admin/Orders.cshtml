@@ -1,0 +1,215 @@
+@model List<ApnaKrishi.Models.Order>
+@{
+    ViewData["Title"] = "Order Management";
+    Layout = "_AdminLayout";
+    var counts = ViewBag.Counts as Dictionary<string, int> ?? new();
+    var currentStatus = ViewBag.Status as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h5 class="mb-0">Order Management</h5>
+    <a asp-action="Reports" asp-route-type="daily" class="btn btn-outline-success btn-sm">
+        <i class="fas fa-chart-bar me-1"></i>Sales Report
+    </a>
+</div>
+
+<!-- Status Filter Tabs -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex flex-wrap gap-2">
+            @{
+                var tabs = new[]
+                {
+                    ("", "All", "secondary"),
+                    ("Pending",    "Pending",    "warning"),
+                    ("Accepted",   "Accepted",   "primary"),
+                    ("Dispatched", "Dispatched", "info"),
+                    ("Delivered",  "Delivered",  "success"),
+                    ("Cancelled",  "Cancelled",  "danger"),
+                    ("Rejected",   "Rejected",   "dark")
+                };
+            }
+            @foreach (var (val, label, color) in tabs)
+            {
+                var isActive = currentStatus == val;
+                var cnt = counts.GetValueOrDefault(string.IsNullOrEmpty(val) ? "All" : val, 0);
+                <a asp-action="Orders" asp-route-status="@val"
+                   class="btn btn-sm @(isActive ? $"btn-{color}" : $"btn-outline-{color}")">
+                    @label
+                    <span class="badge @(isActive ? "bg-white text-dark" : $"bg-{color} text-white") ms-1">
+                        @cnt
+                    </span>
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Search & Date Filter -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="status" value="@currentStatus" />
+            <div class="col-md-4">
+                <input name="search" class="form-control form-control-sm"
+                       placeholder="Search by order ID, customer name or email..."
+                       value="@ViewBag.Search" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="from" class="form-control form-control-sm"
+                       value="@ViewBag.From" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="to" class="form-control form-control-sm"
+                       value="@ViewBag.To" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success btn-sm w-100">
+                    <i class="fas fa-search me-1"></i>Filter
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Orders" class="btn btn-outline-secondary btn-sm w-100">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Items</th>
+                    <th>Amount</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th style="min-width:260px">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>No orders found.
+                        </td>
+                    </tr>
+                }
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">#@order.OrderId</td>
+                        <td>
+                            <div class="fw-semibold small">@order.User?.FullName</div>
+                            <small class="text-muted">@order.User?.Mobile</small>
+                        </td>
+                        <td class="small text-muted">@order.OrderDate.ToString("dd MMM yyyy")<br/>
+                            <span>@order.OrderDate.ToString("hh:mm tt")</span></td>
+                        <td class="small">@order.OrderDetails?.Count item(s)</td>
+                        <td>
+                            <div class="fw-bold text-success">₹@order.GrandTotal.ToString("N0")</div>
+                            <small class="text-muted">@order.PaymentMethod</small>
+                        </td>
+                        <td>
+                            <span class="badge
+                                @(order.Payment?.PaymentStatus == PaymentStatus.Success  ? "bg-success"  :
+                                  order.Payment?.PaymentStatus == PaymentStatus.Failed   ? "bg-danger"   :
+                                  order.Payment?.PaymentStatus == PaymentStatus.Refunded ? "bg-secondary": "bg-warning")
+                                small">
+                                @(order.Payment?.PaymentStatus.ToString() ?? "–")
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge
+                                @(order.Status == OrderStatus.Delivered  ? "bg-success" :
+                                  order.Status == OrderStatus.Cancelled  ? "bg-danger"  :
+                                  order.Status == OrderStatus.Rejected   ? "bg-dark"    :
+                                  order.Status == OrderStatus.Dispatched ? "bg-info"    :
+                                  order.Status == OrderStatus.Accepted   ? "bg-primary" : "bg-warning")">
+                                @order.Status
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                <!-- View -->
+                                <a asp-action="OrderDetails" asp-route-id="@order.OrderId"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                                <!-- Accept -->
+                                @if (order.Status == OrderStatus.Pending)
+                                {
+                                    <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderId"/>
+                                        <input type="hidden" name="status" value="Accepted"/>
+                                        <input type="hidden" name="returnStatus" value="@currentStatus"/>
+                                        <button type="submit" class="btn btn-primary btn-sm"
+                                                title="Accept">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                    </form>
+                                    <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderId"/>
+                                        <input type="hidden" name="status" value="Rejected"/>
+                                        <input type="hidden" name="returnStatus" value="@currentStatus"/>
+                                        <button type="submit" class="btn btn-dark btn-sm"
+                                                title="Reject"
+                                                onclick="return confirm('Reject order #@order.OrderId?')">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                }
+
+                                <!-- Dispatch -->
+                                @if (order.Status == OrderStatus.Accepted)
+                                {
+                                    <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderId"/>
+                                        <input type="hidden" name="status" value="Dispatched"/>
+                                        <input type="hidden" name="returnStatus" value="@currentStatus"/>
+                                        <button type="submit" class="btn btn-info btn-sm text-white" title="Dispatch">
+                                            <i class="fas fa-truck"></i> Dispatch
+                                        </button>
+                                    </form>
+                                }
+
+                                <!-- Complete / Deliver -->
+                                @if (order.Status == OrderStatus.Dispatched)
+                                {
+                                    <form asp-action="QuickStatusChange" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@order.OrderId"/>
+                                        <input type="hidden" name="status" value="Delivered"/>
+                                        <input type="hidden" name="returnStatus" value="@currentStatus"/>
+                                        <button type="submit" class="btn btn-success btn-sm" title="Mark Delivered">
+                                            <i class="fas fa-check-double"></i> Delivered
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.Any())
+    {
+        <div class="card-footer bg-white text-muted small py-2 px-3">
+            Showing @Model.Count order(s)
+            @if (!string.IsNullOrEmpty(currentStatus))
+            {
+                <span>with status <strong>@currentStatus</strong></span>
+            }
+        </div>
+    }
+</div>

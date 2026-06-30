@@ -1,0 +1,34 @@
+@model ApnaKrishi.Models.Category
+@{
+    ViewData["Title"] = "Add Category";
+    Layout = "_AdminLayout";
+}
+
+<div class="card border-0 shadow-sm" style="max-width:600px">
+    <div class="card-header bg-success text-white fw-bold">
+        <i class="fas fa-plus me-2"></i>Add New Category
+    </div>
+    <div class="card-body p-4">
+        <form asp-action="AddCategory" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Category Name *</label>
+                <input asp-for="CategoryName" class="form-control" placeholder="e.g. Fertilizers" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Description</label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Image</label>
+                <input type="file" name="imageFile" class="form-control" accept="image/*" />
+            </div>
+            <div class="form-check mb-3">
+                <input asp-for="IsActive" class="form-check-input" checked />
+                <label asp-for="IsActive" class="form-check-label">Active</label>
+            </div>
+            <button type="submit" class="btn btn-success me-2">Save Category</button>
+            <a asp-action="Categories" class="btn btn-outline-secondary">Cancel</a>
+        </form>
+    </div>
+</div>

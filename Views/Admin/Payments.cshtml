@@ -1,0 +1,191 @@
+@model List<ApnaKrishi.Models.Payment>
+@{
+    ViewData["Title"] = "Payment Management";
+    Layout = "_AdminLayout";
+    var paymentCounts = ViewBag.PaymentCounts as Dictionary<string, int> ?? new();
+    var currentStatus = ViewBag.Status as string ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Payment Management</h5>
+    <div class="text-muted small">
+        Total Collected:
+        <span class="fw-bold text-success fs-6">₹@((decimal)(ViewBag.TotalCollected ?? 0m)).ToString("N2")</span>
+    </div>
+</div>
+
+<!-- Status Filter -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <div class="d-flex flex-wrap gap-2">
+            @{
+                var ptabs = new[]
+                {
+                    ("", "All", "secondary"),
+                    ("Pending",  "Pending",  "warning"),
+                    ("Success",  "Success",  "success"),
+                    ("Failed",   "Failed",   "danger"),
+                    ("Refunded", "Refunded", "info"),
+                };
+            }
+            @foreach (var (val, label, color) in ptabs)
+            {
+                var isActive = currentStatus == val;
+                var cnt = paymentCounts.GetValueOrDefault(string.IsNullOrEmpty(val) ? "All" : val, 0);
+                <a asp-action="Payments" asp-route-status="@val"
+                   class="btn btn-sm @(isActive ? $"btn-{color}" : $"btn-outline-{color}")">
+                    @label
+                    <span class="badge @(isActive ? "bg-white text-dark" : $"bg-{color}") ms-1">@cnt</span>
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex gap-2">
+            <input type="hidden" name="status" value="@currentStatus" />
+            <input name="search" class="form-control form-control-sm"
+                   placeholder="Search by order ID, customer, transaction ID..."
+                   value="@ViewBag.Search" style="max-width:400px" />
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-search me-1"></i>Search
+            </button>
+            <a asp-action="Payments" class="btn btn-outline-secondary btn-sm">Clear</a>
+        </form>
+    </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Transaction ID</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-receipt fa-2x mb-2 d-block"></i>No transactions found.
+                        </td>
+                    </tr>
+                }
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="fw-bold small">#@p.PaymentId</td>
+                        <td>
+                            <a asp-action="OrderDetails" asp-route-id="@p.OrderId"
+                               class="fw-bold text-decoration-none text-success">#@p.OrderId</a>
+                        </td>
+                        <td>
+                            <div class="fw-semibold small">@p.Order?.User?.FullName</div>
+                            <small class="text-muted">@p.Order?.User?.Email</small>
+                        </td>
+                        <td class="small text-muted">
+                            @p.PaymentDate.ToString("dd MMM yyyy")<br/>
+                            @p.PaymentDate.ToString("hh:mm tt")
+                        </td>
+                        <td class="fw-bold text-success">₹@p.Amount.ToString("F2")</td>
+                        <td><small>@p.PaymentMethod</small></td>
+                        <td>
+                            <span class="badge
+                                @(p.PaymentStatus == PaymentStatus.Success  ? "bg-success"   :
+                                  p.PaymentStatus == PaymentStatus.Refunded ? "bg-secondary"  :
+                                  p.PaymentStatus == PaymentStatus.Failed   ? "bg-danger"     : "bg-warning")">
+                                @p.PaymentStatus
+                            </span>
+                        </td>
+                        <td class="small text-muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis">
+                            @(string.IsNullOrEmpty(p.TransactionId) ? "–" : p.TransactionId)
+                        </td>
+                        <td>
+                            @if (p.PaymentStatus == PaymentStatus.Success)
+                            {
+                                <button type="button" class="btn btn-outline-warning btn-sm"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#refundModal"
+                                        data-payid="@p.PaymentId"
+                                        data-orderid="@p.OrderId"
+                                        data-amount="₹@p.Amount.ToString("F2")">
+                                    <i class="fas fa-undo me-1"></i>Refund
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">–</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.Any())
+    {
+        <div class="card-footer bg-white small text-muted py-2 px-3">
+            @Model.Count transaction(s) shown
+        </div>
+    }
+</div>
+
+<!-- Refund Confirmation Modal -->
+<div class="modal fade" id="refundModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="RefundPayment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="paymentId" id="modalPaymentId" />
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Refund</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to refund payment for <strong>Order #<span id="modalOrderId"></span></strong>?</p>
+                    <p>Amount: <strong class="text-success" id="modalAmount"></strong></p>
+                    <div class="alert alert-warning py-2 small">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        This will mark the payment as <em>Refunded</em> and cancel the associated order.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Reason (Optional)</label>
+                        <input type="text" name="reason" class="form-control"
+                               placeholder="e.g. Customer requested cancellation" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-undo me-1"></i>Process Refund
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const refundModal = document.getElementById('refundModal');
+        refundModal.addEventListener('show.bs.modal', e => {
+            const btn = e.relatedTarget;
+            document.getElementById('modalPaymentId').value = btn.dataset.payid;
+            document.getElementById('modalOrderId').textContent = btn.dataset.orderid;
+            document.getElementById('modalAmount').textContent = btn.dataset.amount;
+        });
+    </script>
+}

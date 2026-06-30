@@ -1,0 +1,115 @@
+@model ApnaKrishi.Models.Order
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <div style="font-size:5rem">🎉</div>
+        <h2 class="text-success fw-bold">Order Confirmed!</h2>
+        <p class="lead text-muted">Thank you for your order. We'll process it right away.</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <!-- Order Info Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row text-center g-3">
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-success-subtle rounded">
+                                <div class="fw-bold text-success fs-5">#@Model.OrderId</div>
+                                <small class="text-muted">Order ID</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-info-subtle rounded">
+                                <div class="fw-bold text-info fs-5">@Model.OrderDate.ToString("dd MMM")</div>
+                                <small class="text-muted">Order Date</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-warning-subtle rounded">
+                                <div class="fw-bold text-warning fs-5">@Model.Status</div>
+                                <small class="text-muted">Status</small>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-2 bg-primary-subtle rounded">
+                                <div class="fw-bold text-primary fs-5">₹@Model.GrandTotal.ToString("F2")</div>
+                                <small class="text-muted">Total</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light fw-bold">Ordered Items</div>
+                <div class="card-body p-0">
+                    @foreach (var detail in Model.OrderDetails)
+                    {
+                        <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+                            <img src="@(string.IsNullOrEmpty(detail.Product?.ImageUrl) ? "/images/no-image.png" : detail.Product.ImageUrl)"
+                                 style="width:60px;height:60px;object-fit:contain" class="rounded" />
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold">@detail.Product?.ProductName</div>
+                                <small class="text-muted">Qty: @detail.Quantity × ₹@detail.Price.ToString("F2")</small>
+                            </div>
+                            <span class="fw-bold text-success">₹@detail.SubTotal.ToString("F2")</span>
+                        </div>
+                    }
+                    <div class="p-3 text-end">
+                        <span class="text-muted">Shipping: ₹@Model.ShippingCharges.ToString("F2")</span><br />
+                        <strong class="fs-5 text-success">Grand Total: ₹@Model.GrandTotal.ToString("F2")</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold">Payment Information</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Method</small>
+                            <div>@Model.PaymentMethod</div>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Status</small>
+                            <div>
+                                <span class="badge @(Model.Payment?.PaymentStatus == PaymentStatus.Success ? "bg-success" : "bg-warning")">
+                                    @Model.Payment?.PaymentStatus
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Address -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold"><i class="fas fa-map-marker-alt text-success me-2"></i>Delivery Address</h6>
+                    <p class="mb-0">@Model.DeliveryAddress<br />
+                        @Model.City, @Model.State – @Model.PinCode</p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-3 flex-wrap">
+                <a asp-action="DownloadInvoice" asp-route-orderId="@Model.OrderId"
+                   class="btn btn-outline-success">
+                    <i class="fas fa-download me-2"></i>Download Invoice
+                </a>
+                <a asp-action="MyOrders" class="btn btn-success">
+                    <i class="fas fa-box me-2"></i>My Orders
+                </a>
+                <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
