@@ -129,11 +129,18 @@ namespace ApnaKrishi.Controllers
             _context.Carts.RemoveRange(cartItems);
             await _context.SaveChangesAsync();
 
-            // Send confirmation email
-            var user = await _userManager.GetUserAsync(User);
-            if (user?.Email != null)
+            // Send confirmation email (non-blocking – don't crash if SMTP not configured)
+            try
             {
-                await _emailService.SendOrderConfirmationAsync(user.Email, user.FullName, order.OrderId, grandTotal);
+                var user = await _userManager.GetUserAsync(User);
+                if (user?.Email != null)
+                {
+                    await _emailService.SendOrderConfirmationAsync(user.Email, user.FullName, order.OrderId, grandTotal);
+                }
+            }
+            catch (Exception)
+            {
+                // Email failed – order is still placed successfully
             }
 
             if (model.PaymentMethod != PaymentMethod.CashOnDelivery)

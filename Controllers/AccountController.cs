@@ -128,8 +128,15 @@ namespace ApnaKrishi.Controllers
             var resetLink = Url.Action("ResetPassword", "Account",
                 new { email = model.Email, token }, Request.Scheme);
 
-            await _emailService.SendEmailAsync(model.Email, "Reset Your Password – Apna Krishi",
-                $"<p>Click the link below to reset your password:</p><p><a href='{resetLink}'>Reset Password</a></p>");
+            try
+            {
+                await _emailService.SendEmailAsync(model.Email, "Reset Your Password – Apna Krishi",
+                    $"<p>Click the link below to reset your password:</p><p><a href='{resetLink}'>Reset Password</a></p>");
+            }
+            catch (Exception)
+            {
+                // Email failed silently – user sees confirmation page anyway
+            }
 
             return RedirectToAction("ForgotPasswordConfirmation");
         }
